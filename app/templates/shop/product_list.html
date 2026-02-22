@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}상품 목록 - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <h1>상품 목록</h1>
+
+    {% for product in products %}
+    <div class="col-md-3 mb-4">
+        <div class="card">
+            <img src="{{ product.image | default('/static/images/no-image.png') }}" class="card-img-top" alt="{{ product.name }}">
+            <div class="card-body">
+                <h5>{{ product.name }}</h5>
+                <p>{{ product.price | format_price }}원</p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    console.log("상품 목록 페이지");
+</script>
+{% endblock %}

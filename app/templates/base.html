@@ -4,33 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{{ site_name }}{% endblock %}</title>
+
+    {# 공통 CSS #}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
+
+    {# 페이지별 CSS #}
     {% block head %}{% endblock %}
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="/">{{ site_name }}</a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="/products">상품</a>
-                <a class="nav-link" href="/cart">장바구니</a>
-                <a class="nav-link" href="/login">로그인</a>
-            </div>
-        </div>
-    </nav>
+    {# 네비게이션 #}
+    {% include "components/navbar.html" %}
 
+    {# 플래시 메시지 #}
+    {% include "components/flash.html" %}
+
+    {# 메인 콘텐츠 #}
     <main class="container my-4">
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="bg-light py-3 mt-5">
-        <div class="container text-center">
-            <p class="mb-0">&copy; 2024 {{ site_name }}. All rights reserved.</p>
-        </div>
-    </footer>
+    {# 푸터 #}
+    {% include "components/footer.html" %}
 
+    {# 공통 JS #}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    {# 페이지별 JS #}
     {% block scripts %}{% endblock %}
 </body>
 </html>

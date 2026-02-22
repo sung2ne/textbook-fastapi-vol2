@@ -1,0 +1,12 @@
+{# 플래시 메시지 #}
+{% if request.session and request.session.get('_messages') %}
+{% set messages = request.session.pop('_messages', []) %}
+{% for msg in messages %}
+<div class="container mt-2">
+    <div class="alert alert-{{ msg.category }} alert-dismissible fade show" role="alert">
+        {{ msg.message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+</div>
+{% endfor %}
+{% endif %}
