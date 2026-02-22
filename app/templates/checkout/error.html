@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}주문 오류{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="alert alert-danger">
+        <h4>주문을 진행할 수 없습니다</h4>
+        <ul class="mb-0">
+            {% for error in errors %}
+            <li>{{ error.message }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <a href="/cart" class="btn btn-primary">장바구니로 돌아가기</a>
+</div>
+{% endblock %}

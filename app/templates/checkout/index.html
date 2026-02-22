@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}주문서 작성{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">주문서 작성</h1>
+
+    <form method="post" action="/checkout" id="checkout-form">
+        <div class="row">
+            <!-- 주문 정보 -->
+            <div class="col-lg-8">
+                <!-- 배송 정보 -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between">
+                        <h5 class="mb-0">배송 정보</h5>
+                        {% if addresses %}
+                        <button type="button" class="btn btn-sm btn-outline-primary"
+                                data-bs-toggle="modal" data-bs-target="#addressModal">
+                            배송지 선택
+                        </button>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="recipient" class="form-label">수령인</label>
+                                <input type="text" class="form-control" id="recipient" name="recipient"
+                                       value="{{ default_address.recipient if default_address else current_user.name }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="phone" class="form-label">연락처</label>
+                                <input type="tel" class="form-control" id="phone" name="phone"
+                                       value="{{ default_address.phone if default_address else current_user.phone or '' }}" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="zipcode" class="form-label">우편번호</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="zipcode" name="zipcode"
+                                           value="{{ default_address.zipcode if default_address else '' }}" required readonly>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="searchAddress()">
+                                        검색
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="address1" class="form-label">주소</label>
+                            <input type="text" class="form-control" id="address1" name="address1"
+                                   value="{{ default_address.address1 if default_address else '' }}" required readonly>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="address2" class="form-label">상세주소</label>
+                            <input type="text" class="form-control" id="address2" name="address2"
+                                   value="{{ default_address.address2 if default_address else '' }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="memo" class="form-label">배송 메모</label>
+                            <select class="form-select" id="memo" name="memo">
+                                <option value="">선택 안함</option>
+                                <option value="문 앞에 놓아주세요">문 앞에 놓아주세요</option>
+                                <option value="경비실에 맡겨주세요">경비실에 맡겨주세요</option>
+                                <option value="배송 전 연락 바랍니다">배송 전 연락 바랍니다</option>
+                            </select>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="save_address" name="save_address" value="true">
+                            <label class="form-check-label" for="save_address">
+                                이 배송지를 저장합니다
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 주문 상품 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">주문 상품</h5>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        {% for item in cart.items %}
+                        <li class="list-group-item">
+                            <div class="d-flex">
+                                <img src="{{ item.product.main_image }}" alt="" style="width: 60px; height: 60px; object-fit: cover;" class="rounded me-3">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{{ item.product.name }}</h6>
+                                    <small class="text-muted">{{ item.product.price|format_price }} × {{ item.quantity }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <strong>{{ item.subtotal|format_price }}</strong>
+                                </div>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 결제 요약 -->
+            <div class="col-lg-4">
+                <div class="card sticky-top" style="top: 20px;">
+                    <div class="card-header">
+                        <h5 class="mb-0">결제 금액</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>상품 금액</span>
+                            <span>{{ cart.total_price|format_price }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>배송비</span>
+                            <span>{% if shipping_fee == 0 %}무료{% else %}{{ shipping_fee|format_price }}{% endif %}</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between mb-3">
+                            <strong>총 결제 금액</strong>
+                            <strong class="text-primary fs-4">{{ final_price|format_price }}</strong>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="agree" required>
+                            <label class="form-check-label small" for="agree">
+                                주문 내용을 확인하였으며, 결제에 동의합니다
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 btn-lg">
+                            {{ final_price|format_price }} 결제하기
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- 배송지 선택 모달 -->
+{% if addresses %}
+<div class="modal fade" id="addressModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">배송지 선택</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                {% for address in addresses %}
+                <div class="card mb-2 address-card" style="cursor: pointer;"
+                     onclick="selectAddress({{ address|tojson }})">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <strong>{{ address.name }}</strong>
+                            {% if address.is_default %}
+                            <span class="badge bg-primary">기본</span>
+                            {% endif %}
+                        </div>
+                        <p class="mb-1">{{ address.recipient }} / {{ address.phone }}</p>
+                        <p class="mb-0 text-muted small">
+                            ({{ address.zipcode }}) {{ address.address1 }} {{ address.address2 or '' }}
+                        </p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- 다음 주소 API -->
+<script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+<script>
+function searchAddress() {
+    new daum.Postcode({
+        oncomplete: function(data) {
+            document.getElementById('zipcode').value = data.zonecode;
+            document.getElementById('address1').value = data.roadAddress;
+            document.getElementById('address2').focus();
+        }
+    }).open();
+}
+
+function selectAddress(address) {
+    document.getElementById('recipient').value = address.recipient;
+    document.getElementById('phone').value = address.phone;
+    document.getElementById('zipcode').value = address.zipcode;
+    document.getElementById('address1').value = address.address1;
+    document.getElementById('address2').value = address.address2 || '';
+
+    // 모달 닫기
+    bootstrap.Modal.getInstance(document.getElementById('addressModal')).hide();
+}
+</script>
+{% endblock %}
