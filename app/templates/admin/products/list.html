@@ -1,0 +1,52 @@
+{% extends "admin/base.html" %}
+
+{% block title %}상품 관리{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>상품 관리</h1>
+    <a href="/admin/products/new" class="btn btn-primary">상품 추가</a>
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>이름</th>
+            <th>카테고리</th>
+            <th>가격</th>
+            <th>재고</th>
+            <th>상태</th>
+            <th>관리</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for product in products %}
+        <tr>
+            <td>{{ product.id }}</td>
+            <td>{{ product.name }}</td>
+            <td>{{ product.category.name if product.category else '-' }}</td>
+            <td>{{ product.price|format_price }}</td>
+            <td>{{ product.stock }}</td>
+            <td>
+                {% if product.is_active %}
+                <span class="badge bg-success">활성</span>
+                {% else %}
+                <span class="badge bg-secondary">비활성</span>
+                {% endif %}
+            </td>
+            <td>
+                <a href="/admin/products/{{ product.id }}/edit" class="btn btn-sm btn-outline-primary">수정</a>
+                <form method="post" action="/admin/products/{{ product.id }}/delete" style="display:inline">
+                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('삭제하시겠습니까?')">삭제</button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="7" class="text-center">등록된 상품이 없습니다.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

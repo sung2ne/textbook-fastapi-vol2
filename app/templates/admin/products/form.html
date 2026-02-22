@@ -1,0 +1,100 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{% if product %}상품 수정{% else %}상품 등록{% endif %}{% endblock %}
+
+{% block content %}
+<h1>{% if product %}상품 수정{% else %}상품 등록{% endif %}</h1>
+
+<form method="post" class="mt-4" style="max-width: 600px;">
+    <div class="mb-3">
+        <label for="name" class="form-label">상품명</label>
+        <input type="text" class="form-control {% if errors.name %}is-invalid{% endif %}"
+               id="name" name="name" value="{{ product.name if product else '' }}" required>
+        {% if errors.name %}<div class="invalid-feedback">{{ errors.name }}</div>{% endif %}
+    </div>
+
+    <div class="mb-3">
+        <label for="slug" class="form-label">슬러그</label>
+        <input type="text" class="form-control {% if errors.slug %}is-invalid{% endif %}"
+               id="slug" name="slug" value="{{ product.slug if product else '' }}" required>
+        {% if errors.slug %}<div class="invalid-feedback">{{ errors.slug }}</div>{% endif %}
+    </div>
+
+    <div class="mb-3">
+        <label for="category_id" class="form-label">카테고리</label>
+        <select class="form-select" id="category_id" name="category_id" required>
+            {% for cat in categories %}
+            <option value="{{ cat.id }}" {% if product and product.category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="price" class="form-label">판매가</label>
+            <input type="number" class="form-control" id="price" name="price"
+                   value="{{ product.price if product else '' }}" required>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="original_price" class="form-label">정가 (할인 전)</label>
+            <input type="number" class="form-control" id="original_price" name="original_price"
+                   value="{{ product.original_price if product else '' }}">
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label for="stock" class="form-label">재고</label>
+        <input type="number" class="form-control" id="stock" name="stock"
+               value="{{ product.stock if product else 0 }}">
+    </div>
+
+    <div class="mb-3">
+        <label for="description" class="form-label">설명</label>
+        <textarea class="form-control" id="description" name="description" rows="5">{{ product.description if product else '' }}</textarea>
+    </div>
+
+    <div class="mb-3 form-check">
+        <input type="checkbox" class="form-check-input" id="is_active" name="is_active" value="true"
+               {% if product and product.is_active %}checked{% endif %}>
+        <label class="form-check-label" for="is_active">판매 활성화</label>
+    </div>
+
+    <div class="mb-3 form-check">
+        <input type="checkbox" class="form-check-input" id="is_featured" name="is_featured" value="true"
+               {% if product and product.is_featured %}checked{% endif %}>
+        <label class="form-check-label" for="is_featured">추천 상품</label>
+    </div>
+
+    <button type="submit" class="btn btn-primary">저장</button>
+    <a href="/admin/products" class="btn btn-secondary">취소</a>
+</form>
+
+{% if product %}
+<h3 class="mt-4">상품 이미지</h3>
+
+<div class="row mb-3">
+    {% for image in product.images %}
+    <div class="col-md-3 mb-3">
+        <div class="card">
+            <img src="{{ image.url }}" class="card-img-top" alt="">
+            <div class="card-body text-center">
+                <form method="post" action="/admin/products/{{ product.id }}/images/{{ image.id }}/delete">
+                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                            onclick="return confirm('삭제하시겠습니까?')">
+                        삭제
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<form method="post" action="/admin/products/{{ product.id }}/images" enctype="multipart/form-data">
+    <div class="input-group" style="max-width: 400px;">
+        <input type="file" class="form-control" name="image" accept="image/*" required>
+        <button type="submit" class="btn btn-outline-primary">업로드</button>
+    </div>
+</form>
+{% endif %}
+{% endblock %}
