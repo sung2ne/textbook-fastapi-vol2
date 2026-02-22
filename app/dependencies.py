@@ -1,7 +1,9 @@
 from fastapi import Request, Depends, HTTPException
 from fastapi.templating import Jinja2Templates
+from fastapi.responses import RedirectResponse
 from sqlmodel import Session
 from pathlib import Path
+from datetime import datetime
 
 from app.database import get_session
 
@@ -11,17 +13,60 @@ TEMPLATES_DIR = BASE_DIR / "templates"
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
 
+# 커스텀 필터 등록
+def format_price(value: int) -> str:
+    return f"{value:,}"
+
+
+def format_datetime_filter(value: datetime, format: str = "%Y-%m-%d %H:%M") -> str:
+    if value is None:
+        return ""
+    return value.strftime(format)
+
+
+def format_date(value: datetime) -> str:
+    return format_datetime_filter(value, "%Y-%m-%d")
+
+
+def status_text(status) -> str:
+    texts = {
+        "pending": "결제 대기",
+        "paid": "결제 완료",
+        "preparing": "배송 준비",
+        "shipping": "배송 중",
+        "delivered": "배송 완료",
+        "cancelled": "취소됨"
+    }
+    val = status.value if hasattr(status, 'value') else status
+    return texts.get(val, val)
+
+
+def status_badge(status) -> str:
+    badges = {
+        "pending": "bg-warning text-dark",
+        "paid": "bg-success",
+        "preparing": "bg-info",
+        "shipping": "bg-primary",
+        "delivered": "bg-secondary",
+        "cancelled": "bg-danger"
+    }
+    val = status.value if hasattr(status, 'value') else status
+    return badges.get(val, "bg-secondary")
+
+
+templates.env.filters["format_price"] = format_price
+templates.env.filters["format_datetime"] = format_datetime_filter
+templates.env.filters["format_date"] = format_date
+templates.env.filters["status_text"] = status_text
+templates.env.filters["status_badge"] = status_badge
+templates.env.globals["site_name"] = "FastAPI Shop"
+
+
 def flash(request: Request, message: str, category: str = "info"):
     """플래시 메시지 추가"""
     if "_messages" not in request.session:
         request.session["_messages"] = []
     request.session["_messages"].append({"message": message, "category": category})
-
-
-def get_flashed_messages(request: Request) -> list:
-    """플래시 메시지 가져오기 (한 번만)"""
-    messages = request.session.pop("_messages", [])
-    return messages
 
 
 async def get_templates():
@@ -39,13 +84,18 @@ async def get_current_user_optional(
 
     user_session = get_user_session(request)
     if not user_session:
+        templates.env.globals["current_user"] = None
+        templates.env.globals["cart_count"] = 0
         return None
 
     user_id = user_session.get("user_id")
     if not user_id:
+        templates.env.globals["current_user"] = None
         return None
 
-    return user_crud.get_user(session, user_id)
+    user = user_crud.get_user(session, user_id)
+    templates.env.globals["current_user"] = user
+    return user
 
 
 async def get_current_user(
@@ -69,7 +119,6 @@ async def get_current_admin_user(
 
 async def require_login(request: Request, user=Depends(get_current_user_optional)):
     """로그인 필수 (리다이렉트)"""
-    from fastapi.responses import RedirectResponse
     if not user:
         return RedirectResponse(
             url=f"/login?next={request.url.path}",
