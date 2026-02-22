@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}주문 내역{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">주문 내역</h1>
+
+    {% if orders %}
+    <div class="list-group">
+        {% for order in orders %}
+        <a href="/orders/{{ order.order_number }}" class="list-group-item list-group-item-action">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h6 class="mb-1">
+                        {{ order.order_number }}
+                        <span class="badge {{ order.status|status_badge }}">
+                            {{ order.status|status_text }}
+                        </span>
+                    </h6>
+                    <p class="mb-1 text-muted small">
+                        {{ order.created_at|format_datetime }}
+                    </p>
+                    <p class="mb-0">
+                        {% if order.items|length == 1 %}
+                            {{ order.items[0].product_name }}
+                        {% else %}
+                            {{ order.items[0].product_name }} 외 {{ order.items|length - 1 }}건
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="text-end">
+                    <strong class="text-primary">{{ order.final_price|format_price }}</strong>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <p class="text-muted">주문 내역이 없습니다.</p>
+        <a href="/products" class="btn btn-primary">쇼핑하러 가기</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

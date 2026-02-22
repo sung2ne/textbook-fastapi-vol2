@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}주문 상세{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">주문 상세</h1>
+        <a href="/orders" class="btn btn-outline-secondary">목록으로</a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- 주문 정보 -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between">
+                    <span>주문번호: <strong>{{ order.order_number }}</strong></span>
+                    <span class="badge {{ order.status|status_badge }} fs-6">
+                        {{ order.status|status_text }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-0">주문일시: {{ order.created_at|format_datetime }}</p>
+                </div>
+            </div>
+
+            <!-- 주문 상품 -->
+            <div class="card mb-4">
+                <div class="card-header">주문 상품</div>
+                <ul class="list-group list-group-flush">
+                    {% for item in order.items %}
+                    <li class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h6 class="mb-1">{{ item.product_name }}</h6>
+                                <small class="text-muted">
+                                    {{ item.product_price|format_price }} × {{ item.quantity }}
+                                </small>
+                            </div>
+                            <strong>{{ item.subtotal|format_price }}</strong>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- 배송 정보 -->
+            <div class="card mb-4">
+                <div class="card-header">배송 정보</div>
+                <div class="card-body">
+                    <p><strong>{{ order.recipient }}</strong> / {{ order.phone }}</p>
+                    <p class="mb-0">
+                        ({{ order.zipcode }}) {{ order.address1 }}
+                        {% if order.address2 %}{{ order.address2 }}{% endif %}
+                    </p>
+                    {% if order.memo %}
+                    <p class="text-muted mt-2 mb-0">배송메모: {{ order.memo }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- 결제 정보 -->
+            <div class="card mb-4">
+                <div class="card-header">결제 정보</div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>상품 금액</span>
+                        <span>{{ order.total_price|format_price }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>배송비</span>
+                        <span>{% if order.shipping_fee == 0 %}무료{% else %}{{ order.shipping_fee|format_price }}{% endif %}</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <strong>총 결제 금액</strong>
+                        <strong class="text-primary">{{ order.final_price|format_price }}</strong>
+                    </div>
+
+                    {% if order.payment and order.payment.receipt_url %}
+                    <a href="{{ order.payment.receipt_url }}" target="_blank" class="btn btn-outline-primary btn-sm mt-3 w-100">
+                        영수증 보기
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- 주문 취소 -->
+            {% if order.status.value in ['pending', 'paid', 'preparing'] %}
+            <div class="card">
+                <div class="card-body">
+                    <form method="post" action="/orders/{{ order.order_number }}/cancel">
+                        <button type="submit" class="btn btn-outline-danger w-100"
+                                onclick="return confirm('주문을 취소하시겠습니까?')">
+                            주문 취소
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
