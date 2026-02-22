@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- 브레드크럼 -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">홈</a></li>
+            <li class="breadcrumb-item"><a href="/products">상품</a></li>
+            {% if product.category %}
+            <li class="breadcrumb-item">
+                <a href="/products?category={{ product.category.slug }}">{{ product.category.name }}</a>
+            </li>
+            {% endif %}
+            <li class="breadcrumb-item active">{{ product.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- 이미지 -->
+        <div class="col-md-6">
+            <img id="mainImage" src="{{ product.main_image }}" class="img-fluid rounded"
+                 alt="{{ product.name }}" style="width: 100%; max-height: 500px; object-fit: contain;">
+
+            {% if product.images|length > 1 %}
+            <div class="row g-2 mt-2">
+                {% for image in product.images %}
+                <div class="col-3">
+                    <img src="{{ image.url }}" class="img-fluid rounded"
+                         alt="" style="cursor: pointer; height: 80px; object-fit: cover;"
+                         onclick="document.getElementById('mainImage').src='{{ image.url }}'">
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- 상품 정보 -->
+        <div class="col-md-6">
+            {% if product.category %}
+            <p class="text-muted mb-1">{{ product.category.name }}</p>
+            {% endif %}
+
+            <h1 class="h2 mb-3">{{ product.name }}</h1>
+
+            <div class="mb-4">
+                {% if product.discount_percent %}
+                <span class="badge bg-danger fs-6 me-2">{{ product.discount_percent }}% 할인</span>
+                <del class="text-muted fs-5">{{ product.original_price|format_price }}</del>
+                {% endif %}
+                <p class="text-primary fs-2 fw-bold mb-0">{{ product.price|format_price }}</p>
+            </div>
+
+            {% if product.description %}
+            <div class="mb-4">
+                <p class="text-muted">{{ product.description }}</p>
+            </div>
+            {% endif %}
+
+            <!-- 재고 -->
+            <div class="mb-4">
+                {% if product.stock > 0 %}
+                <span class="text-success">재고 있음 ({{ product.stock }}개)</span>
+                {% else %}
+                <span class="text-danger">품절</span>
+                {% endif %}
+            </div>
+
+            <!-- 수량 선택 -->
+            <div class="mb-4">
+                <label class="form-label">수량</label>
+                <div class="input-group" style="max-width: 150px;">
+                    <button class="btn btn-outline-secondary" type="button" onclick="changeQty(-1)">-</button>
+                    <input type="number" id="quantity" class="form-control text-center" value="1" min="1" max="{{ product.stock }}">
+                    <button class="btn btn-outline-secondary" type="button" onclick="changeQty(1)">+</button>
+                </div>
+            </div>
+
+            <!-- 버튼 -->
+            <div class="d-grid gap-2">
+                <button class="btn btn-primary btn-lg" {% if product.stock == 0 %}disabled{% endif %}
+                        onclick="addToCart({{ product.id }})">
+                    장바구니 담기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 관련 상품 -->
+    {% if related_products %}
+    <hr class="my-5">
+    <h3 class="mb-4">관련 상품</h3>
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-4">
+        {% for p in related_products %}
+        <div class="col">
+            <div class="card h-100">
+                <a href="/products/{{ p.slug }}">
+                    <img src="{{ p.main_image }}" class="card-img-top"
+                         alt="{{ p.name }}" style="height: 150px; object-fit: cover;">
+                </a>
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <a href="/products/{{ p.slug }}" class="text-decoration-none text-dark">
+                            {{ p.name }}
+                        </a>
+                    </h6>
+                    <p class="card-text text-primary fw-bold">{{ p.price|format_price }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function changeQty(delta) {
+    const input = document.getElementById('quantity');
+    const newVal = parseInt(input.value) + delta;
+    if (newVal >= 1 && newVal <= {{ product.stock }}) {
+        input.value = newVal;
+    }
+}
+
+function addToCart(productId) {
+    const quantity = document.getElementById('quantity').value;
+    fetch('/api/cart/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product_id: productId, quantity: parseInt(quantity) })
+    }).then(r => r.json()).then(data => {
+        if (data.success) {
+            alert('장바구니에 담았습니다.');
+            const badge = document.getElementById('cart-badge');
+            if (badge) {
+                badge.textContent = data.cart_quantity;
+                badge.style.display = 'inline';
+            }
+        } else {
+            alert(data.detail || '오류가 발생했습니다.');
+        }
+    }).catch(() => alert('네트워크 오류가 발생했습니다.'));
+}
+</script>
+{% endblock %}
