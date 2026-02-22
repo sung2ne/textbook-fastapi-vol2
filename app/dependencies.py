@@ -125,3 +125,42 @@ async def require_login(request: Request, user=Depends(get_current_user_optional
             status_code=303
         )
     return user
+
+
+async def get_current_cart(
+    request: Request,
+    session: Session = Depends(get_session),
+    user=Depends(get_current_user_optional)
+):
+    """현재 장바구니"""
+    from app.crud import cart as cart_crud
+    from app.services.cart_session import get_cart_session_id
+
+    if user:
+        try:
+            cart = cart_crud.get_or_create_cart(session, user_id=user.id)
+            templates.env.globals["cart_count"] = cart.total_quantity
+            return cart
+        except Exception:
+            return None
+
+    session_id = get_cart_session_id(request)
+    if session_id:
+        try:
+            cart = cart_crud.get_or_create_cart(session, session_id=session_id)
+            templates.env.globals["cart_count"] = cart.total_quantity
+            return cart
+        except Exception:
+            return None
+
+    templates.env.globals["cart_count"] = 0
+    return None
+
+
+async def get_cart_count(
+    cart=Depends(get_current_cart)
+) -> int:
+    """장바구니 상품 수"""
+    if not cart:
+        return 0
+    return cart.total_quantity
