@@ -5,6 +5,8 @@ from app.models.user import (
     Address, AddressCreate, AddressUpdate
 )
 from app.models.cart import Cart, CartItem
+from app.models.order import Order, OrderItem, OrderStatus
+from app.models.payment import Payment, PaymentMethod, PaymentStatus
 
 __all__ = [
     "Category", "CategoryCreate", "CategoryUpdate",
@@ -12,4 +14,6 @@ __all__ = [
     "User", "UserCreate", "UserUpdate", "UserLogin", "UserRole",
     "Address", "AddressCreate", "AddressUpdate",
     "Cart", "CartItem",
+    "Order", "OrderItem", "OrderStatus",
+    "Payment", "PaymentMethod", "PaymentStatus",
 ]
