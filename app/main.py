@@ -130,7 +130,8 @@ from app.routers.admin import (
     categories as admin_categories,
     products as admin_products,
     auth as admin_auth,
-    orders as admin_orders
+    orders as admin_orders,
+    dashboard as admin_dashboard
 )
 
 app.include_router(products.router)
@@ -142,6 +143,7 @@ app.include_router(checkout.router)
 app.include_router(orders.router)
 app.include_router(payment.router)
 app.include_router(admin_auth.router)
+app.include_router(admin_dashboard.router)
 app.include_router(admin_categories.router)
 app.include_router(admin_products.router)
 app.include_router(admin_orders.router)
