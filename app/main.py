@@ -123,6 +123,19 @@ templates.env.globals["site_name"] = settings.SITE_NAME
 templates.env.globals["current_user"] = None
 templates.env.globals["cart_count"] = 0
 
+# 라우터 등록
+from app.routers import products, auth, mypage
+from app.routers.cart import router as cart_api_router, page_router as cart_page_router
+from app.routers.admin import categories as admin_categories, products as admin_products
+
+app.include_router(products.router)
+app.include_router(auth.router)
+app.include_router(mypage.router)
+app.include_router(cart_api_router)
+app.include_router(cart_page_router)
+app.include_router(admin_categories.router)
+app.include_router(admin_products.router)
+
 
 @app.get("/")
 async def home(request: Request):
