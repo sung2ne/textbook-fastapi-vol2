@@ -1,0 +1,14 @@
+__pycache__
+*.pyc
+*.pyo
+.git
+.gitignore
+.env
+.env.*
+*.md
+.vscode
+.idea
+tests/
+*.log
+uploads/
+alembic/versions/
