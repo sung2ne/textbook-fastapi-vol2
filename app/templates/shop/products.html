@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>상품 목록</h1>
+
+{% for product in products %}
+<div class="card mb-3">
+    <div class="card-body">
+        <h5>{{ product.name }}</h5>
+        <p>{{ product.price }}원</p>
+
+        {% if product.stock > 0 %}
+            <span class="badge bg-success">재고: {{ product.stock }}</span>
+        {% else %}
+            <span class="badge bg-danger">품절</span>
+        {% endif %}
+    </div>
+</div>
+{% else %}
+<p>등록된 상품이 없습니다.</p>
+{% endfor %}
+{% endblock %}
