@@ -178,3 +178,54 @@ async def product_delete(
     if product:
         product_crud.delete_product(session, product)
     return RedirectResponse(url="/admin/products", status_code=303)
+
+
+@router.post("/{product_id}/images")
+async def upload_product_image(
+    request: Request,
+    product_id: int,
+    image: UploadFile = File(...),
+    session: Session = Depends(get_session),
+    admin=Depends(get_current_admin_user)
+):
+    """상품 이미지 업로드"""
+    from app.services.image import save_image
+    from app.models import ProductImage
+
+    product = product_crud.get_product(session, product_id)
+    if not product:
+        raise HTTPException(404, "상품을 찾을 수 없습니다")
+
+    # 이미지 저장
+    url = await save_image(image, folder="products")
+
+    # DB에 저장
+    product_image = ProductImage(
+        product_id=product_id,
+        url=url,
+        sort_order=len(product.images)
+    )
+    session.add(product_image)
+    session.commit()
+
+    return RedirectResponse(url=f"/admin/products/{product_id}/edit", status_code=303)
+
+
+@router.post("/{product_id}/images/{image_id}/delete")
+async def delete_product_image(
+    product_id: int,
+    image_id: int,
+    session: Session = Depends(get_session),
+    admin=Depends(get_current_admin_user)
+):
+    """상품 이미지 삭제"""
+    from app.services.image import delete_image
+    from app.models import ProductImage
+
+    image = session.get(ProductImage, image_id)
+    if image and image.product_id == product_id:
+        delete_image(image.url)
+        session.delete(image)
+        session.commit()
+
+    return RedirectResponse(url=f"/admin/products/{product_id}/edit", status_code=303)
