@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}회원가입{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <h2 class="text-center mb-4">회원가입</h2>
+
+                    {% if errors.general %}
+                    <div class="alert alert-danger">{{ errors.general }}</div>
+                    {% endif %}
+
+                    <form method="post">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">이메일</label>
+                            <input type="email" class="form-control {% if errors.email %}is-invalid{% endif %}"
+                                   id="email" name="email" value="{{ email or '' }}" required>
+                            {% if errors.email %}
+                            <div class="invalid-feedback">{{ errors.email }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">비밀번호</label>
+                            <input type="password" class="form-control {% if errors.password %}is-invalid{% endif %}"
+                                   id="password" name="password" required>
+                            {% if errors.password %}
+                            <div class="invalid-feedback">{{ errors.password }}</div>
+                            {% endif %}
+                            <div class="form-text">8자 이상, 영문과 숫자 포함</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password_confirm" class="form-label">비밀번호 확인</label>
+                            <input type="password" class="form-control {% if errors.password_confirm %}is-invalid{% endif %}"
+                                   id="password_confirm" name="password_confirm" required>
+                            {% if errors.password_confirm %}
+                            <div class="invalid-feedback">{{ errors.password_confirm }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="name" class="form-label">이름</label>
+                            <input type="text" class="form-control {% if errors.name %}is-invalid{% endif %}"
+                                   id="name" name="name" value="{{ name or '' }}" required>
+                            {% if errors.name %}
+                            <div class="invalid-feedback">{{ errors.name }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">연락처 (선택)</label>
+                            <input type="tel" class="form-control"
+                                   id="phone" name="phone" value="{{ phone or '' }}"
+                                   placeholder="010-0000-0000">
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="agree" required>
+                            <label class="form-check-label" for="agree">
+                                이용약관 및 개인정보처리방침에 동의합니다
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 mb-3">가입하기</button>
+
+                        <div class="text-center">
+                            <span class="text-muted">이미 계정이 있으신가요?</span>
+                            <a href="/login">로그인</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
