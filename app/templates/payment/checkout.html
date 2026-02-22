@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}결제{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">결제</h1>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- 주문 정보 -->
+            <div class="card mb-4">
+                <div class="card-header">주문 정보</div>
+                <div class="card-body">
+                    <p><strong>주문번호:</strong> {{ order.order_number }}</p>
+                    <p><strong>상품:</strong>
+                        {% if order.items|length == 1 %}
+                            {{ order.items[0].product_name }}
+                        {% else %}
+                            {{ order.items[0].product_name }} 외 {{ order.items|length - 1 }}건
+                        {% endif %}
+                    </p>
+                    <p class="mb-0"><strong>결제 금액:</strong>
+                        <span class="text-primary fs-4">{{ order.final_price|format_price }}</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- 결제 위젯 -->
+            <div class="card">
+                <div class="card-header">결제 수단</div>
+                <div class="card-body">
+                    <div id="payment-widget"></div>
+                    <div id="agreement"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card sticky-top" style="top: 20px;">
+                <div class="card-body">
+                    <h5 class="mb-3">결제 금액</h5>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>상품 금액</span>
+                        <span>{{ order.total_price|format_price }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>배송비</span>
+                        <span>{% if order.shipping_fee == 0 %}무료{% else %}{{ order.shipping_fee|format_price }}{% endif %}</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-4">
+                        <strong>총 결제 금액</strong>
+                        <strong class="text-primary fs-4">{{ order.final_price|format_price }}</strong>
+                    </div>
+
+                    <button id="payment-button" class="btn btn-primary w-100 btn-lg">
+                        {{ order.final_price|format_price }} 결제하기
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 토스페이먼츠 SDK -->
+<script src="https://js.tosspayments.com/v1/payment-widget"></script>
+<script>
+const clientKey = "{{ client_key }}";
+const customerKey = "user_{{ current_user.id }}";
+
+const paymentWidget = PaymentWidget(clientKey, customerKey);
+
+// 결제 위젯 렌더링
+paymentWidget.renderPaymentMethods(
+    "#payment-widget",
+    { value: {{ order.final_price }} },
+    { variantKey: "DEFAULT" }
+);
+
+// 약관 위젯 렌더링
+paymentWidget.renderAgreement("#agreement", { variantKey: "AGREEMENT" });
+
+// 결제 버튼
+document.getElementById("payment-button").addEventListener("click", async function() {
+    try {
+        await paymentWidget.requestPayment({
+            orderId: "{{ order.order_number }}",
+            orderName: "{% if order.items|length == 1 %}{{ order.items[0].product_name }}{% else %}{{ order.items[0].product_name }} 외 {{ order.items|length - 1 }}건{% endif %}",
+            customerName: "{{ current_user.name }}",
+            customerEmail: "{{ current_user.email }}",
+            successUrl: "{{ success_url }}",
+            failUrl: "{{ fail_url }}"
+        });
+    } catch (error) {
+        if (error.code !== "USER_CANCEL") {
+            alert(error.message);
+        }
+    }
+});
+</script>
+{% endblock %}
