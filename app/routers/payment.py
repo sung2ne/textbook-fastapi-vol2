@@ -46,3 +46,89 @@ async def payment_page(
             "fail_url": f"{settings.BASE_URL}/payment/fail"
         }
     )
+
+
+@router.get("/success")
+async def payment_success(
+    request: Request,
+    paymentKey: str,
+    orderId: str,
+    amount: int,
+    session: Session = Depends(get_session),
+    templates=Depends(get_templates),
+    user: User = Depends(get_current_user)
+):
+    """결제 성공 (리다이렉트)"""
+    # 주문 조회
+    order = order_crud.get_order_by_number(session, orderId)
+    if not order:
+        return templates.TemplateResponse(
+            "payment/fail.html",
+            {"request": request, "message": "주문을 찾을 수 없습니다"}
+        )
+
+    # 권한 확인
+    if order.user_id != user.id:
+        return templates.TemplateResponse(
+            "payment/fail.html",
+            {"request": request, "message": "접근 권한이 없습니다"}
+        )
+
+    # 금액 확인
+    if order.final_price != amount:
+        return templates.TemplateResponse(
+            "payment/fail.html",
+            {"request": request, "message": "결제 금액이 일치하지 않습니다"}
+        )
+
+    # 결제 승인
+    result = await confirm_payment(paymentKey, orderId, amount)
+
+    if not result["success"]:
+        error = result["error"]
+        return templates.TemplateResponse(
+            "payment/fail.html",
+            {
+                "request": request,
+                "message": error.get("message", "결제 승인에 실패했습니다"),
+                "code": error.get("code")
+            }
+        )
+
+    # 결제 정보 업데이트
+    payment_data = result["data"]
+    payment = order.payment
+    payment.payment_key = paymentKey
+    payment.status = PaymentStatus.COMPLETED
+    payment.method = payment_data.get("method")
+    payment.receipt_url = payment_data.get("receipt", {}).get("url")
+    payment.completed_at = datetime.now()
+    session.add(payment)
+
+    # 주문 상태 업데이트
+    order_crud.update_order_status(session, order, OrderStatus.PAID)
+
+    return templates.TemplateResponse(
+        "payment/success.html",
+        {"request": request, "order": order}
+    )
+
+
+@router.get("/fail")
+async def payment_fail(
+    request: Request,
+    code: str = None,
+    message: str = None,
+    orderId: str = None,
+    templates=Depends(get_templates)
+):
+    """결제 실패 (리다이렉트)"""
+    return templates.TemplateResponse(
+        "payment/fail.html",
+        {
+            "request": request,
+            "code": code,
+            "message": message or "결제가 실패했습니다",
+            "order_id": orderId
+        }
+    )
