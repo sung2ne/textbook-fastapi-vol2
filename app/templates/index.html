@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}홈 - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="text-center py-5">
+    <h1>{{ site_name }}에 오신 것을 환영합니다!</h1>
+    <p class="lead">FastAPI로 만든 쇼핑몰입니다.</p>
+    <a href="/products" class="btn btn-primary btn-lg">쇼핑 시작하기</a>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5>빠른 속도</h5>
+                <p>FastAPI의 비동기 처리로 빠른 응답</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5>안전한 결제</h5>
+                <p>토스페이먼츠 연동으로 안전한 결제</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5>빠른 배송</h5>
+                <p>주문 후 빠른 배송</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
