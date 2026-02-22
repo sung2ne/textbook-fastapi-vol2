@@ -1,0 +1,42 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<h1>{% if category %}카테고리 수정{% else %}카테고리 등록{% endif %}</h1>
+
+<form method="post" class="mt-4" style="max-width: 500px;">
+    <div class="mb-3">
+        <label for="name" class="form-label">이름</label>
+        <input type="text" class="form-control {% if errors.name %}is-invalid{% endif %}"
+               id="name" name="name" value="{{ category.name if category else '' }}" required>
+        {% if errors.name %}<div class="invalid-feedback">{{ errors.name }}</div>{% endif %}
+    </div>
+
+    <div class="mb-3">
+        <label for="slug" class="form-label">슬러그 (URL용)</label>
+        <input type="text" class="form-control {% if errors.slug %}is-invalid{% endif %}"
+               id="slug" name="slug" value="{{ category.slug if category else '' }}" required>
+        {% if errors.slug %}<div class="invalid-feedback">{{ errors.slug }}</div>{% endif %}
+        <div class="form-text">예: electronics, clothing</div>
+    </div>
+
+    <div class="mb-3">
+        <label for="description" class="form-label">설명</label>
+        <textarea class="form-control" id="description" name="description" rows="2">{{ category.description if category else '' }}</textarea>
+    </div>
+
+    <div class="mb-3">
+        <label for="sort_order" class="form-label">정렬 순서</label>
+        <input type="number" class="form-control" id="sort_order" name="sort_order"
+               value="{{ category.sort_order if category else 0 }}">
+    </div>
+
+    <div class="mb-3 form-check">
+        <input type="checkbox" class="form-check-input" id="is_active" name="is_active" value="true"
+               {% if category and category.is_active %}checked{% endif %}>
+        <label class="form-check-label" for="is_active">활성화</label>
+    </div>
+
+    <button type="submit" class="btn btn-primary">저장</button>
+    <a href="/admin/categories" class="btn btn-secondary">취소</a>
+</form>
+{% endblock %}
