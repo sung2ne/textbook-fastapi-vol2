@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}회원정보 수정{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1>회원정보 수정</h1>
+    <form method="post" class="mt-4" style="max-width: 400px;">
+        <div class="mb-3">
+            <label for="name" class="form-label">이름</label>
+            <input type="text" class="form-control" id="name" name="name" value="{{ user.name }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="phone" class="form-label">연락처</label>
+            <input type="tel" class="form-control" id="phone" name="phone" value="{{ user.phone or '' }}">
+        </div>
+        <button type="submit" class="btn btn-primary">저장</button>
+        <a href="/mypage" class="btn btn-secondary">취소</a>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}로그인{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5 col-lg-4">
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <h2 class="text-center mb-4">로그인</h2>
+
+                    {% if message %}
+                    <div class="alert alert-success">{{ message }}</div>
+                    {% endif %}
+
+                    {% if errors.general %}
+                    <div class="alert alert-danger">{{ errors.general }}</div>
+                    {% endif %}
+
+                    <form method="post">
+                        <input type="hidden" name="next" value="{{ next or '/' }}">
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">이메일</label>
+                            <input type="email" class="form-control"
+                                   id="email" name="email" value="{{ email or '' }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">비밀번호</label>
+                            <input type="password" class="form-control"
+                                   id="password" name="password" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 mb-3">로그인</button>
+
+                        <hr>
+
+                        <div class="text-center">
+                            <span class="text-muted">계정이 없으신가요?</span>
+                            <a href="/register">회원가입</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
