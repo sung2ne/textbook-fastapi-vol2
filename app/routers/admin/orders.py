@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Request, Form, HTTPException
+from fastapi import APIRouter, Depends, Request, Form, HTTPException, Query
 from fastapi.responses import RedirectResponse
 from sqlmodel import Session
 
@@ -14,16 +14,17 @@ router = APIRouter(prefix="/admin/orders", tags=["admin-orders"])
 @router.get("")
 async def order_list(
     request: Request,
-    page: int = 1,
     status: str | None = None,
+    page: int = Query(1, ge=1),
     session: Session = Depends(get_session),
     templates=Depends(get_templates),
     admin=Depends(get_current_admin_user)
 ):
-    """관리자 주문 목록"""
+    """주문 목록"""
     per_page = 20
     skip = (page - 1) * per_page
 
+    # 상태 필터
     order_status = None
     if status:
         try:
@@ -32,14 +33,29 @@ async def order_list(
             pass
 
     orders = order_crud.get_all_orders(session, status=order_status, skip=skip, limit=per_page)
+    total = order_crud.count_orders(session, status=order_status)
+
+    # 상태별 카운트
+    status_counts = {
+        "all": order_crud.count_orders(session),
+        "pending": order_crud.count_orders(session, OrderStatus.PENDING),
+        "paid": order_crud.count_orders(session, OrderStatus.PAID),
+        "preparing": order_crud.count_orders(session, OrderStatus.PREPARING),
+        "shipping": order_crud.count_orders(session, OrderStatus.SHIPPING),
+        "delivered": order_crud.count_orders(session, OrderStatus.DELIVERED),
+        "cancelled": order_crud.count_orders(session, OrderStatus.CANCELLED),
+    }
 
     return templates.TemplateResponse(
         "admin/orders/list.html",
         {
             "request": request,
             "orders": orders,
+            "status": status,
+            "status_counts": status_counts,
             "page": page,
-            "status_filter": status
+            "total": total,
+            "per_page": per_page
         }
     )
 
@@ -52,19 +68,19 @@ async def order_detail(
     templates=Depends(get_templates),
     admin=Depends(get_current_admin_user)
 ):
-    """관리자 주문 상세"""
+    """주문 상세"""
     order = order_crud.get_order(session, order_id)
     if not order:
         raise HTTPException(status_code=404, detail="주문을 찾을 수 없습니다")
 
     return templates.TemplateResponse(
         "admin/orders/detail.html",
-        {"request": request, "order": order, "OrderStatus": OrderStatus}
+        {"request": request, "order": order}
     )
 
 
 @router.post("/{order_id}/status")
-async def update_status(
+async def update_order_status(
     order_id: int,
     status: str = Form(...),
     session: Session = Depends(get_session),
@@ -78,7 +94,7 @@ async def update_status(
     try:
         new_status = OrderStatus(status)
     except ValueError:
-        raise HTTPException(status_code=400, detail="잘못된 상태값입니다")
+        raise HTTPException(status_code=400, detail="잘못된 상태입니다")
 
     order_crud.update_order_status(session, order, new_status)
 

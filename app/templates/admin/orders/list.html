@@ -1,0 +1,91 @@
+{% extends "admin/base.html" %}
+
+{% block title %}주문 관리{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-4">주문 관리</h1>
+
+<!-- 상태 필터 -->
+<ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+        <a class="nav-link {% if not status %}active{% endif %}" href="/admin/orders">
+            전체 <span class="badge bg-secondary">{{ status_counts.all }}</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if status == 'pending' %}active{% endif %}" href="/admin/orders?status=pending">
+            결제 대기 <span class="badge bg-warning text-dark">{{ status_counts.pending }}</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if status == 'paid' %}active{% endif %}" href="/admin/orders?status=paid">
+            결제 완료 <span class="badge bg-success">{{ status_counts.paid }}</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if status == 'preparing' %}active{% endif %}" href="/admin/orders?status=preparing">
+            배송 준비 <span class="badge bg-info">{{ status_counts.preparing }}</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if status == 'shipping' %}active{% endif %}" href="/admin/orders?status=shipping">
+            배송 중 <span class="badge bg-primary">{{ status_counts.shipping }}</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if status == 'delivered' %}active{% endif %}" href="/admin/orders?status=delivered">
+            배송 완료 <span class="badge bg-secondary">{{ status_counts.delivered }}</span>
+        </a>
+    </li>
+</ul>
+
+<!-- 주문 목록 -->
+<div class="card">
+    <table class="table table-hover mb-0">
+        <thead>
+            <tr>
+                <th>주문번호</th>
+                <th>주문자</th>
+                <th>상품</th>
+                <th>금액</th>
+                <th>상태</th>
+                <th>주문일시</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr onclick="location.href='/admin/orders/{{ order.id }}'" style="cursor:pointer">
+                <td>{{ order.order_number }}</td>
+                <td>{{ order.recipient }}</td>
+                <td>
+                    {% if order.items|length == 1 %}
+                        {{ order.items[0].product_name }}
+                    {% else %}
+                        {{ order.items[0].product_name }} 외 {{ order.items|length - 1 }}건
+                    {% endif %}
+                </td>
+                <td>{{ order.final_price|format_price }}</td>
+                <td><span class="badge {{ order.status|status_badge }}">{{ order.status|status_text }}</span></td>
+                <td>{{ order.created_at|format_datetime }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" class="text-center text-muted py-4">주문이 없습니다</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if total > per_page %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% for p in range(1, (total // per_page) + 2) %}
+        <li class="page-item {% if p == page %}active{% endif %}">
+            <a class="page-link" href="?page={{ p }}{% if status %}&status={{ status }}{% endif %}">{{ p }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

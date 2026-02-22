@@ -1,0 +1,119 @@
+{% extends "admin/base.html" %}
+
+{% block title %}주문 상세{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">주문 상세</h1>
+    <a href="/admin/orders" class="btn btn-outline-secondary">목록으로</a>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- 주문 정보 -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between">
+                <span>주문번호: <strong>{{ order.order_number }}</strong></span>
+                <span class="badge {{ order.status|status_badge }} fs-6">{{ order.status|status_text }}</span>
+            </div>
+            <div class="card-body">
+                <p>주문일시: {{ order.created_at|format_datetime }}</p>
+                {% if order.paid_at %}
+                <p>결제일시: {{ order.paid_at|format_datetime }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- 상품 목록 -->
+        <div class="card mb-4">
+            <div class="card-header">주문 상품</div>
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>상품명</th>
+                        <th>단가</th>
+                        <th>수량</th>
+                        <th>소계</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order.items %}
+                    <tr>
+                        <td>{{ item.product_name }}</td>
+                        <td>{{ item.product_price|format_price }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>{{ item.subtotal|format_price }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" class="text-end">상품 금액</td>
+                        <td>{{ order.total_price|format_price }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" class="text-end">배송비</td>
+                        <td>{{ order.shipping_fee|format_price }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" class="text-end"><strong>총 결제 금액</strong></td>
+                        <td><strong>{{ order.final_price|format_price }}</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <!-- 배송 정보 -->
+        <div class="card">
+            <div class="card-header">배송 정보</div>
+            <div class="card-body">
+                <p><strong>{{ order.recipient }}</strong> / {{ order.phone }}</p>
+                <p>({{ order.zipcode }}) {{ order.address1 }} {{ order.address2 or '' }}</p>
+                {% if order.memo %}
+                <p class="text-muted">메모: {{ order.memo }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- 상태 변경 -->
+        <div class="card mb-4">
+            <div class="card-header">상태 변경</div>
+            <div class="card-body">
+                <form method="post" action="/admin/orders/{{ order.id }}/status">
+                    <select name="status" class="form-select mb-3">
+                        <option value="pending" {% if order.status.value == 'pending' %}selected{% endif %}>결제 대기</option>
+                        <option value="paid" {% if order.status.value == 'paid' %}selected{% endif %}>결제 완료</option>
+                        <option value="preparing" {% if order.status.value == 'preparing' %}selected{% endif %}>배송 준비</option>
+                        <option value="shipping" {% if order.status.value == 'shipping' %}selected{% endif %}>배송 중</option>
+                        <option value="delivered" {% if order.status.value == 'delivered' %}selected{% endif %}>배송 완료</option>
+                        <option value="cancelled" {% if order.status.value == 'cancelled' %}selected{% endif %}>취소</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary w-100">상태 변경</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 주문 취소 -->
+        {% if order.status.value not in ['cancelled', 'delivered'] %}
+        <div class="card">
+            <div class="card-header">주문 취소</div>
+            <div class="card-body">
+                <form method="post" action="/admin/orders/{{ order.id }}/cancel">
+                    <div class="mb-3">
+                        <label class="form-label">취소 사유</label>
+                        <input type="text" name="cancel_reason" class="form-control" required
+                               placeholder="취소 사유를 입력하세요">
+                    </div>
+                    <button type="submit" class="btn btn-danger w-100"
+                            onclick="return confirm('주문을 취소하시겠습니까?')">
+                        주문 취소
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

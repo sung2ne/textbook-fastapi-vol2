@@ -157,3 +157,15 @@ def get_all_orders(
         statement = statement.where(Order.status == status)
 
     return session.exec(statement).all()
+
+
+def count_orders(
+    session: Session,
+    status: OrderStatus | None = None
+) -> int:
+    """주문 수"""
+    from sqlmodel import func
+    statement = select(func.count(Order.id))
+    if status:
+        statement = statement.where(Order.status == status)
+    return session.exec(statement).one()
