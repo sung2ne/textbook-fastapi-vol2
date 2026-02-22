@@ -1,0 +1,22 @@
+{% macro product_card(product) %}
+<div class="card h-100">
+    <img src="{{ product.main_image | default('/static/images/no-image.png') }}"
+         class="card-img-top" alt="{{ product.name }}">
+    <div class="card-body">
+        <h5 class="card-title">{{ product.name }}</h5>
+        <p class="card-text text-primary fw-bold">
+            {{ product.price | format_price }}원
+        </p>
+        {% if product.stock == 0 %}
+        <span class="badge bg-danger">품절</span>
+        {% elif product.stock < 10 %}
+        <span class="badge bg-warning">재고 {{ product.stock }}개</span>
+        {% endif %}
+    </div>
+    <div class="card-footer">
+        <a href="/products/{{ product.id }}" class="btn btn-outline-primary btn-sm">
+            상세보기
+        </a>
+    </div>
+</div>
+{% endmacro %}

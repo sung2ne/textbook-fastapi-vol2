@@ -1,0 +1,38 @@
+{% macro input(name, label, type="text", value="", required=false) %}
+<div class="mb-3">
+    <label for="{{ name }}" class="form-label">{{ label }}</label>
+    <input
+        type="{{ type }}"
+        class="form-control"
+        id="{{ name }}"
+        name="{{ name }}"
+        value="{{ value }}"
+        {% if required %}required{% endif %}
+    >
+</div>
+{% endmacro %}
+
+{% macro textarea(name, label, value="", rows=3, required=false) %}
+<div class="mb-3">
+    <label for="{{ name }}" class="form-label">{{ label }}</label>
+    <textarea
+        class="form-control"
+        id="{{ name }}"
+        name="{{ name }}"
+        rows="{{ rows }}"
+        {% if required %}required{% endif %}
+    >{{ value }}</textarea>
+</div>
+{% endmacro %}
+
+{% macro select(name, label, options, selected="", required=false) %}
+<div class="mb-3">
+    <label for="{{ name }}" class="form-label">{{ label }}</label>
+    <select class="form-select" id="{{ name }}" name="{{ name }}" {% if required %}required{% endif %}>
+        <option value="">선택하세요</option>
+        {% for value, text in options %}
+        <option value="{{ value }}" {% if value == selected %}selected{% endif %}>{{ text }}</option>
+        {% endfor %}
+    </select>
+</div>
+{% endmacro %}
