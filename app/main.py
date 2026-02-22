@@ -131,7 +131,8 @@ from app.routers.admin import (
     products as admin_products,
     auth as admin_auth,
     orders as admin_orders,
-    dashboard as admin_dashboard
+    dashboard as admin_dashboard,
+    users as admin_users
 )
 
 app.include_router(products.router)
@@ -147,6 +148,7 @@ app.include_router(admin_dashboard.router)
 app.include_router(admin_categories.router)
 app.include_router(admin_products.router)
 app.include_router(admin_orders.router)
+app.include_router(admin_users.router)
 
 
 @app.get("/")

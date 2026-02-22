@@ -1,0 +1,104 @@
+{% extends "admin/base.html" %}
+
+{% block title %}회원 상세{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">회원 상세</h1>
+    <a href="/admin/users" class="btn btn-outline-secondary">목록으로</a>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- 회원 정보 -->
+        <div class="card mb-4">
+            <div class="card-header">회원 정보</div>
+            <table class="table mb-0">
+                <tr>
+                    <th style="width: 150px;">ID</th>
+                    <td>{{ user.id }}</td>
+                </tr>
+                <tr>
+                    <th>이메일</th>
+                    <td>{{ user.email }}</td>
+                </tr>
+                <tr>
+                    <th>이름</th>
+                    <td>{{ user.name }}</td>
+                </tr>
+                <tr>
+                    <th>연락처</th>
+                    <td>{{ user.phone or '-' }}</td>
+                </tr>
+                <tr>
+                    <th>가입일</th>
+                    <td>{{ user.created_at|format_datetime }}</td>
+                </tr>
+                <tr>
+                    <th>마지막 로그인</th>
+                    <td>{{ user.last_login_at|format_datetime if user.last_login_at else '-' }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- 주문 내역 -->
+        <div class="card">
+            <div class="card-header">최근 주문 내역</div>
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>주문번호</th>
+                        <th>금액</th>
+                        <th>상태</th>
+                        <th>주문일</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr onclick="location.href='/admin/orders/{{ order.id }}'" style="cursor:pointer">
+                        <td>{{ order.order_number }}</td>
+                        <td>{{ order.final_price|format_price }}</td>
+                        <td><span class="badge {{ order.status|status_badge }}">{{ order.status|status_text }}</span></td>
+                        <td>{{ order.created_at|format_datetime }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">주문 내역이 없습니다</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- 상태 관리 -->
+        <div class="card mb-4">
+            <div class="card-header">상태 관리</div>
+            <div class="card-body">
+                <form method="post" action="/admin/users/{{ user.id }}/status" class="mb-3">
+                    <label class="form-label">계정 상태</label>
+                    <div class="d-flex gap-2">
+                        <select name="is_active" class="form-select">
+                            <option value="true" {% if user.is_active %}selected{% endif %}>활성</option>
+                            <option value="false" {% if not user.is_active %}selected{% endif %}>비활성</option>
+                        </select>
+                        <button type="submit" class="btn btn-outline-primary">변경</button>
+                    </div>
+                </form>
+
+                <form method="post" action="/admin/users/{{ user.id }}/role">
+                    <label class="form-label">역할</label>
+                    <div class="d-flex gap-2">
+                        <select name="role" class="form-select">
+                            <option value="user" {% if user.role.value == 'user' %}selected{% endif %}>일반 회원</option>
+                            <option value="admin" {% if user.role.value == 'admin' %}selected{% endif %}>관리자</option>
+                        </select>
+                        <button type="submit" class="btn btn-outline-primary">변경</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
